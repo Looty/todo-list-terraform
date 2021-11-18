@@ -32,7 +32,7 @@ variable "worker_group_two_name" {
 }
 
 variable "worker_group_one_instance_type" {
-  default = "t2.small"
+  default = "t2.medium"
 }
 
 variable "worker_group_two_instance_type" {
@@ -47,24 +47,12 @@ variable "worker_group_two_nodes_num" {
   default = 3
 }
 
-variable "all_workder_group_name" {
-  default = "all_worker_management"
-}
-
 variable "worker_group_mgmt_cidr" {
   default = "10.0.0.0/8"
 }
 
-variable "worker_group_mgmt_cidr_extra_one" {
-  default = "172.16.0.0/12"
-}
-
-variable "worker_group_mgmt_cidr_extra_two" {
-  default = "192.168.0.0/16"
-}
-
 variable "vpc_name" {
-  default = "test-vpc"
+  default = "k8s-vpc"
 }
 
 variable "vpc_cidr" {
@@ -93,4 +81,12 @@ variable "eks_cluster_version" {
 
 variable "eks_cluster_timeout" {
   default = "1h"
+}
+
+variable "argocd_name" {
+  default = "argocd"
+}
+
+variable "argocd_folder_name" {
+  default = "argo-cd"
 }

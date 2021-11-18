@@ -43,23 +43,6 @@ resource "aws_security_group" "worker_group_mgmt_two" {
   }
 }
 
-resource "aws_security_group" "all_worker_mgmt" {
-  name_prefix = var.all_workder_group_name
-  vpc_id      = module.vpc.vpc_id
-
-  ingress {
-    from_port = var.security_group_ssh_port
-    to_port   = var.security_group_ssh_port
-    protocol  = var.security_group_ssh_protocol
-
-    cidr_blocks = [
-      var.worker_group_mgmt_cidr,
-      var.worker_group_mgmt_cidr_extra_one,
-      var.worker_group_mgmt_cidr_extra_two,
-    ]
-  }
-}
-
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
 
@@ -107,8 +90,6 @@ module "eks" {
       additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
     }
   ]
-
-  worker_additional_security_group_ids = [aws_security_group.all_worker_mgmt.id]
 }
 
 provider "kubernetes" {
@@ -117,64 +98,23 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.cluster.token
 }
 
-# resource "kubernetes_deployment" "example" {
-#   metadata {
-#     name = "terraform-example"
-#     labels = {
-#       test = "MyExampleApp"
-#     }
-#   }
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+  }
+}
 
-#   spec {
-#     replicas = 2
+resource "helm_release" "argocd" {
+  name             = var.argocd_name
+  namespace        = var.argocd_name
+  create_namespace = true
+  chart            = "${path.module}/${var.argocd_folder_name}"
+  wait             = true
+  cleanup_on_fail  = true
 
-#     selector {
-#       match_labels = {
-#         test = "MyExampleApp"
-#       }
-#     }
-
-#     template {
-#       metadata {
-#         labels = {
-#           test = "MyExampleApp"
-#         }
-#       }
-
-#       spec {
-#         container {
-#           image = "nginx:1.7.8"
-#           name  = "example"
-
-#           resources {
-#             limits = {
-#               cpu    = "0.5"
-#               memory = "512Mi"
-#             }
-#             requests = {
-#               cpu    = "250m"
-#               memory = "50Mi"
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
-
-# resource "kubernetes_service" "example" {
-#   metadata {
-#     name = "terraform-example"
-#   }
-#   spec {
-#     selector = {
-#       test = "MyExampleApp"
-#     }
-#     port {
-#       port        = 80
-#       target_port = 80
-#     }
-
-#     type = "LoadBalancer"
-#   }
-# }
+  # provisioner "local-exec" {
+  #   command = "helm install ${var.argocd_name} ${path.module}/${var.argocd_folder_name} -n ${var.argocd_name}"
+  # }
+}
