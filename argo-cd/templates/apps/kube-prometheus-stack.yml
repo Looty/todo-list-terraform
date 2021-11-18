@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prometheus
+  name: kube-prometheus-stack
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/Looty/todo-list-charts.git
     targetRevision: HEAD
-    path: prometheus/
+    path: kube-prometheus-stack/
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
