@@ -1,5 +1,5 @@
 variable "region" {
-  default     = "eu-central-1"
+  default     = "eu-west-2"
   description = "AWS region"
 }
 
@@ -16,19 +16,19 @@ variable "security_group_ssh_protocol" {
 }
 
 variable "worker_group_mgmt_one_name" {
-  default = "worker_group_mgmt_one"
+  default = "erez-worker_group_mgmt_one"
 }
 
 variable "worker_group_one_name" {
-  default = "worker-group-1"
+  default = "erez-worker-group-1"
 }
 
 variable "worker_group_mgmt_two_name" {
-  default = "worker_group_mgmt_two"
+  default = "erez-worker_group_mgmt_two"
 }
 
 variable "worker_group_two_name" {
-  default = "worker-group-2"
+  default = "erez-worker-group-2"
 }
 
 variable "worker_group_one_instance_type" {
@@ -52,7 +52,7 @@ variable "worker_group_mgmt_cidr" {
 }
 
 variable "vpc_name" {
-  default = "k8s-vpc"
+  default = "erez-k8s-vpc"
 }
 
 variable "vpc_cidr" {
