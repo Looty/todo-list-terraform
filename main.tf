@@ -1,5 +1,14 @@
+terraform {
+  backend "s3" {
+    bucket = "erez-eks-bucket"
+    key    = "terraform.tfstate"
+    region = "eu-west-2"
+  }
+}
+
 provider "aws" {
   region  = var.region
+  profile = var.aws_cred_profile_name
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -51,18 +60,18 @@ module "vpc" {
   azs                  = data.aws_availability_zones.available.names
   private_subnets      = [var.vpc_private_subnet_one, var.vpc_private_subnet_two]
   public_subnets       = [var.vpc_public_subnet_one,  var.vpc_public_subnet_two]
-  enable_nat_gateway   = true
-  single_nat_gateway   = true
-  enable_dns_hostnames = true
+  enable_nat_gateway   = var.enable_nat_gateway
+  single_nat_gateway   = var.single_nat_gateway
+  enable_dns_hostnames = var.enable_dns_hostnames
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    "kubernetes.io/role/elb"                      = "1"
+    "kubernetes.io/cluster/${var.cluster_name}"   = var.subnet_tag_one
+    "kubernetes.io/role/elb"                      = var.subnet_tag_two
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
-    "kubernetes.io/role/internal-elb"             = "1"
+    "kubernetes.io/cluster/${var.cluster_name}"   = var.subnet_tag_one
+    "kubernetes.io/role/internal-elb"             = var.subnet_tag_two
   }
 }
 
@@ -72,7 +81,7 @@ module "eks" {
   cluster_version                 = var.eks_cluster_version
   subnets                         = module.vpc.private_subnets
   cluster_create_timeout          = var.eks_cluster_timeout
-  cluster_endpoint_private_access = true 
+  cluster_endpoint_private_access = var.cluster_endpoint_private_access 
 
   vpc_id = module.vpc.vpc_id
 
@@ -82,12 +91,18 @@ module "eks" {
       instance_type                 = var.worker_group_one_instance_type
       asg_desired_capacity          = var.worker_group_one_nodes_num
       additional_security_group_ids = [aws_security_group.worker_group_mgmt_one.id]
+      root_volume_size              = var.worker_groups_volume_size
+      root_volume_type              = var.worker_groups_volume_type
+      enable_monitoring             = var.worker_groups_monitoring_status
     },
     {
       name                          = var.worker_group_two_name
       instance_type                 = var.worker_group_two_instance_type
       asg_desired_capacity          = var.worker_group_two_nodes_num
       additional_security_group_ids = [aws_security_group.worker_group_mgmt_two.id]
+      root_volume_size              = var.worker_groups_volume_size
+      root_volume_type              = var.worker_groups_volume_type
+      enable_monitoring             = var.worker_groups_monitoring_status
     }
   ]
 }
@@ -109,12 +124,8 @@ provider "helm" {
 resource "helm_release" "argocd" {
   name             = var.argocd_name
   namespace        = var.argocd_name
-  create_namespace = true
+  create_namespace = var.argocd_create_namespace
   chart            = "${path.module}/${var.argocd_folder_name}"
-  wait             = true
-  cleanup_on_fail  = true
-
-  # provisioner "local-exec" {
-  #   command = "helm install ${var.argocd_name} ${path.module}/${var.argocd_folder_name} -n ${var.argocd_name}"
-  # }
+  wait             = var.argocd_wait_on_install
+  cleanup_on_fail  = var.argocd_cleanup_on_fail
 }
