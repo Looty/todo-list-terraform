@@ -5,3 +5,4 @@
 !variables.tf
 !argo-cd
 !argo-cd/**
+!README.md
