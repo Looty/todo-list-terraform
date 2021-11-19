@@ -1,0 +1,7 @@
+*
+!main.tf
+!.gitignore
+!outputs.tf
+!variables.tf
+!argo-cd
+!argo-cd/**

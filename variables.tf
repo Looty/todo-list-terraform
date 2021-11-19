@@ -48,7 +48,7 @@ variable "worker_groups_volume_type" {
 }
 
 variable "worker_groups_volume_size" {
-  default = 15
+  default = 10
 }
 
 variable "worker_groups_monitoring_status" {
